@@ -1,15 +1,14 @@
 package am.itspace.authorbookrest.service;
 
 import am.itspace.authorbookrest.dto.AuthorResponseDto;
+import am.itspace.authorbookrest.dto.PagingResponseDto;
 import am.itspace.authorbookrest.dto.SaveAuthorDto;
-import am.itspace.authorbookrest.entity.Author;
-
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 public interface AuthorService {
     AuthorResponseDto create(SaveAuthorDto author);
 
-    List<AuthorResponseDto> getAll();
+    PagingResponseDto getAll(Pageable pageable);
 
     AuthorResponseDto getById(int id);
 
