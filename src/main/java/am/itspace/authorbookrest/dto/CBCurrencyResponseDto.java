@@ -1,5 +1,6 @@
 package am.itspace.authorbookrest.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,13 +10,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BookDto {
+public class CBCurrencyResponseDto {
 
-    private int id;
-    private String description;
-    private double price;
-    private double priceUSD;
-    private String title;
-    private AuthorResponseDto authorResponseDto;
+    @JsonProperty("USD")
+    private String usd;
+
+    @JsonProperty("RUB")
+    private String rub;
 
 }

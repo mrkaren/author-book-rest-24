@@ -25,7 +25,7 @@ public class AuthorEndpoint {
     }
 
     @GetMapping
-    public PagingResponseDto getAll(
+    public PagingResponseDto getAll (
             @RequestParam(value = "page", required = false, defaultValue = "0") int page,
             @RequestParam(value = "size", required = false, defaultValue = "5") int size,
             @RequestParam(value = "orderBy", required = false, defaultValue = "id") String orderBy,
