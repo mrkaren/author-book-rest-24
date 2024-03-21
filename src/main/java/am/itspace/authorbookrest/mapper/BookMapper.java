@@ -6,6 +6,8 @@ import am.itspace.authorbookrest.entity.Book;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring", uses = AuthorMapper.class)
 public interface BookMapper {
 
@@ -13,5 +15,7 @@ public interface BookMapper {
     BookDto map(Book book);
 
     Book map(SaveBookDto saveBookDto);
+
+    List<BookDto> map(List<Book> books);
 
 }

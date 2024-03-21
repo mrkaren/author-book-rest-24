@@ -1,14 +1,23 @@
 package am.itspace.authorbookrest.service.impl;
 
 import am.itspace.authorbookrest.dto.BookDto;
+import am.itspace.authorbookrest.dto.BookFilterDto;
 import am.itspace.authorbookrest.dto.CBCurrencyResponseDto;
 import am.itspace.authorbookrest.dto.SaveBookDto;
 import am.itspace.authorbookrest.entity.Book;
+import am.itspace.authorbookrest.entity.QBook;
 import am.itspace.authorbookrest.mapper.BookMapper;
 import am.itspace.authorbookrest.repository.AuthorRepository;
 import am.itspace.authorbookrest.repository.BookRepository;
 import am.itspace.authorbookrest.service.BookService;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.PathBuilder;
+import com.querydsl.jpa.JPAQueryBase;
+import com.querydsl.jpa.impl.JPAQuery;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -24,6 +33,8 @@ public class BookServiceImpl implements BookService {
     private final AuthorRepository authorRepository;
     private final BookMapper bookMapper;
     private final RestTemplate restTemplate;
+
+    private final EntityManager entityManager;
 
     @Override
     public BookDto save(SaveBookDto saveBookDto) {
@@ -48,6 +59,44 @@ public class BookServiceImpl implements BookService {
         return bookDtos;
     }
 
+    @Override
+    public List<BookDto> getAllByFilter(BookFilterDto bookFilterDto) {
+        JPAQuery<Book> query = new JPAQuery(entityManager);
+
+        QBook qBook = QBook.book;
+        JPAQueryBase from = query.from(qBook);
+
+        if (StringUtils.isNotBlank(bookFilterDto.getTitle())) {
+            from.where(qBook.title.contains(bookFilterDto.getTitle()));
+        }
+
+        if (StringUtils.isNotBlank(bookFilterDto.getDescription())) {
+            from.where(qBook.description.contains(bookFilterDto.getDescription()));
+        }
+
+        if (bookFilterDto.getMinPrice() != null && bookFilterDto.getMaxPrice() != null) {
+            from.where(qBook.price.between(bookFilterDto.getMinPrice(), bookFilterDto.getMaxPrice()));
+        } else if (bookFilterDto.getMinPrice() != null) {
+            from.where(qBook.price.goe(bookFilterDto.getMinPrice()));
+        } else if (bookFilterDto.getMaxPrice() != null) {
+            from.where(qBook.price.loe(bookFilterDto.getMaxPrice()));
+        }
+
+        if (bookFilterDto.getPage() > 0) {
+            from.offset((long) bookFilterDto.getPage() * bookFilterDto.getSize());
+        }
+        from.limit(bookFilterDto.getSize());
+
+        PathBuilder<Object> orderByExpression = new PathBuilder<Object>(Book.class, bookFilterDto.getOrderBy());
+
+        from.orderBy(new OrderSpecifier("asc".equalsIgnoreCase(bookFilterDto.getOrderDirection()) ? Order.ASC
+                : Order.DESC, orderByExpression));
+
+
+        List<Book> books = query.fetch();
+
+        return bookMapper.map(books);
+    }
 
     private void setUsdPrice(BookDto bookDto, double usdCurrency) {
         bookDto.setPriceUSD(bookDto.getPrice() / usdCurrency);
